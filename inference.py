@@ -17,11 +17,11 @@ def inference(args, config, network):
         model_file = 'weights/model-%d.pth' % args.resume_weights
         check_point = torch.load(model_file, map_location=device)
         net.load_state_dict(check_point)
-    ex_name = os.path.splitext(args.file_path)[1]
+    ex_name = os.path.splitext(config.csv_file_test)[1]
     if ex_name in ['.JPG', '.jpeg', '.jpg']:
-        file_path = os.path.normpath(args.file_path)
+        file_path = os.path.normpath(config.csv_file_test)
         img_PIL = Image.open(file_path)
-        label = get_C_elegants_label(args.file_path, config.labels_name_required)
+        label = get_C_elegants_label(config.csv_file_test, config.labels_name_required)
         image = config.trans['val_trans'](img_PIL)
         image = torch.unsqueeze(image, 0)
 
@@ -32,11 +32,12 @@ def inference(args, config, network):
         print('预测置信度为: %lf' % output[0, infer_label])
 
     elif ex_name in ['.csv']:
-        file_path = os.path.normpath(args.file_path)
-        test_set = CelegansDataset(config.labels_name_required, file_path, config.root_dir, 
+        file_path = os.path.normpath(config.csv_file_test)
+        test_set = CelegansDataset(config.labels_name_required, file_path, config.test_dir, 
                 transform=config.trans['val_trans'])
-        test_loader = torch.utils.data.DataLoader(test_set, batch_size=config.val_batch_size)
-        df = pd.read_csv(file_path)
+        batch_size = 8
+        test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size)
+        df = pd.read_csv(config.csv_file_test)
         columns = ['file_path', 'predict_label', 'true_label', 'confidence']
         batch_count = 0
         ret = np.empty((0,4))
@@ -51,8 +52,8 @@ def inference(args, config, network):
                 predict_labels = outputs.argmax(axis=1)
                 predict_labels = np.array(predict_labels)
                 confidence = outputs[range(len(outputs)),  predict_labels]
-                start = batch_count * config.val_batch_size
-                end = start + config.val_batch_size
+                start = batch_count * batch_size
+                end = start + batch_size
                 end = end if end < len(df) else len(df)
                 file_paths = df.iloc[start:end, 1]
                 file_paths = np.array(file_paths)
