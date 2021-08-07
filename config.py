@@ -5,7 +5,7 @@ from torchvision.transforms.transforms import Resize, ToTensor
 
 
 class Celegans_dataset:
-    root_dir = 'E:\workspace\线虫数据集\分类数据集'             # 数据集根目录
+    root_dir = 'D:\WorkSpace\datasets\线虫数据集\分类数据集'             # 数据集根目录
     csv_tar_path = '.\csv files'                                # 包含csv文件的文件夹
     csv_file_train = '.\\csv files\cele_df_train.csv'           # 训练集csv文件路径
     csv_file_val = '.\\csv files\cele_df_val.csv'               # 测试集csv文件路径
